@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Firebase Email OTP Demo</title>
+<style>
+  body { font-family: Arial, sans-serif; padding: 20px; }
+  .form-box { max-width: 400px; margin: auto; border: 1px solid #ccc; padding: 20px; border-radius: 10px; }
+  input { width: 100%; padding: 8px; margin: 5px 0; }
+  button { padding: 10px; width: 100%; margin-top: 10px; }
+  p { color: red; }
+</style>
+</head>
+<body>
+
+<div class="form-box">
+  <h2>Sign Up</h2>
+  <input type="email" id="signupEmail" placeholder="Email"><br>
+  <input type="password" id="signupPassword" placeholder="Password"><br>
+  <button id="signupBtn">Sign Up</button>
+  <p id="signupError"></p>
+</div>
+
+<div class="form-box" style="display:none" id="verifyBox">
+  <h2>Verify Email</h2>
+  <p>Check your inbox and click the verification link.</p>
+  <button id="checkVerifiedBtn">I have verified</button>
+  <p id="verifyError"></p>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
+  import { getAuth, createUserWithEmailAndPassword, sendEmailVerification, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyC-MxInTav2W6FfOS-J5r5x0bLy3DQCVI",
+    authDomain: "nazir-123.firebaseapp.com",
+    projectId: "nazir-123",
+    storageBucket: "nazir-123.firebasestorage.app",
+    messagingSenderId: "779858438235",
+    appId: "1:779858438235:web:66e721d4b517de936ab77e",
+    measurementId: "G-M88Q01F3E2"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+
+  const signupBtn = document.getElementById('signupBtn');
+  const signupError = document.getElementById('signupError');
+  const verifyBox = document.getElementById('verifyBox');
+  const checkVerifiedBtn = document.getElementById('checkVerifiedBtn');
+  const verifyError = document.getElementById('verifyError');
+
+  signupBtn.addEventListener('click', async () => {
+    signupError.innerText = "";
+    const email = document.getElementById('signupEmail').value.trim();
+    const password = document.getElementById('signupPassword').value.trim();
+    if (!email || !password) { signupError.innerText = "Email and password required!"; return; }
+
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      await sendEmailVerification(userCredential.user);
+      document.querySelector('.form-box').style.display = 'none';
+      verifyBox.style.display = 'block';
+    } catch (err) {
+      signupError.innerText = err.message;
+    }
+  });
+
+  checkVerifiedBtn.addEventListener('click', async () => {
+    verifyError.innerText = "";
+    const user = auth.currentUser;
+    if (!user) { verifyError.innerText = "No user signed in."; return; }
+    await user.reload();
+    if (user.emailVerified) {
+      alert("Email verified! You can now login.");
+      location.reload(); // یا صفحه login
+    } else {
+      verifyError.innerText = "Email not verified yet!";
+    }
+  });
+
+</script>
+</body>
